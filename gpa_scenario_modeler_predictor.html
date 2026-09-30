@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPA Scenario Modeler & Predictor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    input[type=range] {
+      accent-color: #4f46e5;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col custom-scrollbar overflow-y-auto bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-900/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-base font-bold tracking-tight text-slate-900 dark:text-white">GPA Scenario Modeler</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Interactive Degree, Yearly, and Termly Planning Engine</p>
+          </div>
+        </div>
+
+        <!-- Mobile Theme Toggle Button -->
+        <button onclick="toggleTheme()" class="md:hidden p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Light/Dark Theme">
+          <svg id="themeIconMobile" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+        </button>
+      </div>
+      
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <!-- Scope Selector Tabs -->
+        <div class="flex items-center bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs w-full md:w-auto">
+          <button id="scopeDegreeBtn" onclick="setScope('degree')" class="flex-1 md:flex-none px-3.5 py-1.5 rounded-lg font-medium transition flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200/60 dark:border-slate-700">
+            <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+            Degree
+          </button>
+          <button id="scopeYearlyBtn" onclick="setScope('yearly')" class="flex-1 md:flex-none px-3.5 py-1.5 rounded-lg font-medium transition flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Yearly
+          </button>
+          <button id="scopeQuarterlyBtn" onclick="setScope('quarterly')" class="flex-1 md:flex-none px-3.5 py-1.5 rounded-lg font-medium transition flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+            <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Termly
+          </button>
+        </div>
+
+        <!-- Desktop Theme Toggle Switcher -->
+        <button onclick="toggleTheme()" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition" title="Toggle Light/Dark Theme">
+          <svg id="themeIconDesktop" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+          <span id="themeLabelText">Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- Top Minimalist Metrics Summary Header -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      
+      <!-- Card 1: Scope Target GPA -->
+      <div id="tierFocusCard" class="bg-white dark:bg-slate-900 border border-emerald-500/30 dark:border-emerald-500/40 rounded-2xl p-5 shadow-sm transition-all duration-200">
+        <div class="flex justify-between items-center">
+          <span id="tierFocusCardTitle" class="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Degree Scope Target</span>
+          <span id="tierFocusBadge" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-mono font-medium border border-emerald-200 dark:border-emerald-800">DEGREE</span>
+        </div>
+        <div class="flex items-baseline space-x-2.5 mt-3">
+          <span id="tierFocusPrimaryValue" class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">3.50</span>
+          <span id="tierFocusSubBadge" class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Target</span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2" id="tierFocusSubtext">Projected average on remaining credits</p>
+      </div>
+
+      <!-- Card 2: Final Cumulative Degree GPA -->
+      <div class="bg-white dark:bg-slate-900 border border-indigo-500/30 dark:border-indigo-500/40 rounded-2xl p-5 shadow-sm transition-all duration-200">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Final Cumulative GPA</span>
+          <span class="text-[10px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-mono font-medium border border-indigo-200 dark:border-indigo-800">TOTAL</span>
+        </div>
+        <div class="flex items-baseline space-x-2.5 mt-3">
+          <span id="finalGpaDisplay" class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">3.30</span>
+          <span id="finalGpaDeltaBadge" class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">+0.20</span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2" id="finalGpaSubtext">Overall cumulative degree GPA</p>
+      </div>
+
+      <!-- Card 3: Max Possible Ceiling -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm transition-all duration-200">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">Max Possible GPA</span>
+          <span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-mono font-medium">CEILING</span>
+        </div>
+        <div class="flex items-baseline space-x-2 mt-3">
+          <span id="maxPossibleGpaDisplay" class="text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight">3.55</span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2" id="maxPossibleGpaDetail">Assuming maximum grade on remaining credits</p>
+      </div>
+    </div>
+
+    <!-- Main Interactive Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Controls Column -->
+      <div class="lg:col-span-5 space-y-5">
+
+        <!-- Global Grade Scale & Baseline History -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm">
+          <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Academic Parameters
+            </h2>
+            <div class="flex items-center space-x-2">
+              <label for="maxGpaScaleInput" class="text-xs text-slate-500 dark:text-slate-400 font-medium">Max Scale:</label>
+              <input type="number" id="maxGpaScaleInput" step="0.01" min="1.00" max="5.00" value="4.00" class="w-16 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1 text-xs font-mono text-indigo-600 dark:text-indigo-400 font-semibold focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="priorGpaInput" class="text-xs text-slate-600 dark:text-slate-400 font-medium block mb-1">Prior Cumulative GPA</label>
+              <input type="number" id="priorGpaInput" step="0.01" min="0.00" max="4.00" value="3.10" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-mono font-bold focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label for="priorCreditsInput" class="text-xs text-slate-600 dark:text-slate-400 font-medium block mb-1">Completed Credits</label>
+              <input type="number" id="priorCreditsInput" min="0" max="300" value="60" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+          <div>
+            <label for="totalDegreeCreditsInput" class="text-xs text-slate-600 dark:text-slate-400 font-medium block mb-1">Total Degree Credits Required</label>
+            <input type="number" id="totalDegreeCreditsInput" min="1" max="300" value="120" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-mono focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <!-- 1. DEGREE SCOPE CONTROLS -->
+        <div id="degreeControls" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5 shadow-sm">
+          <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
+                Degree Macro Modeler
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Project total degree trajectory</p>
+            </div>
+            <button onclick="presetDegree('midway')" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Reset</button>
+          </div>
+
+          <!-- Calculation Mode Switcher -->
+          <div class="bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800 flex items-center space-x-1">
+            <button id="degreeMode1Btn" onclick="switchDegreeCalcMode(1)" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">
+              Predict Final GPA
+            </button>
+            <button id="degreeMode2Btn" onclick="switchDegreeCalcMode(2)" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+              Calculate Required Avg
+            </button>
+          </div>
+
+          <!-- Mode 1: Predict Final -->
+          <div id="degreePredictBox" class="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
+            <div class="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <span>Future Grade Average</span>
+              <span id="degreeFutureGpaVal" class="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">3.50</span>
+            </div>
+            <input type="range" id="degreeFutureGpaSlider" min="0.00" max="4.00" step="0.05" value="3.50" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Projected average grade for remaining <span class="degreeRemainingCredsText font-semibold text-slate-800 dark:text-slate-200">60</span> credits.</p>
+          </div>
+
+          <!-- Mode 2: Calculate Required -->
+          <div id="degreeTargetBox" class="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3 hidden">
+            <div class="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label for="degreeTargetGpaInput">Target Goal GPA</label>
+            </div>
+            <input type="number" id="degreeTargetGpaInput" step="0.05" min="0.00" max="4.00" value="3.50" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-sm font-mono text-indigo-600 dark:text-indigo-400 font-bold focus:outline-none focus:border-indigo-500">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Calculates required average on remaining <span class="degreeRemainingCredsText font-semibold text-slate-800 dark:text-slate-200">60</span> credits.</p>
+          </div>
+        </div>
+
+        <!-- 2. YEARLY SCOPE CONTROLS -->
+        <div id="yearlyControls" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5 shadow-sm hidden">
+          <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Yearly Multi-Term Modeler
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Add custom academic terms and assign credit weights</p>
+            </div>
+          </div>
+
+          <!-- Dynamic Terms Editor List -->
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Yearly Terms</span>
+              <button onclick="addYearlyTerm()" class="text-xs px-2.5 py-1 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-lg transition font-medium">
+                + Add Term
+              </button>
+            </div>
+            
+            <div id="yearlyTermsContainer" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+              <!-- Dynamically rendered term rows -->
+            </div>
+          </div>
+
+          <!-- Balance for Yearly -->
+          <div class="p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+            <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+              <span>Yearly Total Credits:</span>
+              <span id="yearlyTotalUnitsVal" class="font-mono font-bold text-amber-600 dark:text-amber-400">30 credits</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-500 dark:text-slate-400">
+              <span>Remaining Credits Beyond This Year:</span>
+              <span id="yearlyRemainingDegreeUnitsVal" class="font-mono text-slate-800 dark:text-slate-200">30 credits</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+              <label for="yearlyFutureAssumedGpa">Assumed Avg on Remaining Credits:</label>
+              <input type="number" id="yearlyFutureAssumedGpa" step="0.05" min="0" max="4" value="3.50" class="w-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded px-1.5 py-0.5 text-xs text-right font-mono text-amber-600 dark:text-amber-400 font-bold">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. TERMLY / COURSE SCOPE CONTROLS -->
+        <div id="quarterlyControls" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5 shadow-sm hidden">
+          <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Termly Course Breakdown
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Enter course credits and expected grade points</p>
+            </div>
+          </div>
+
+          <div>
+            <label for="quarterTermNameInput" class="text-xs text-slate-600 dark:text-slate-400 font-medium block mb-1">Term Name</label>
+            <input type="text" id="quarterTermNameInput" value="Fall Term" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-semibold focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <!-- Dynamic Courses List -->
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Courses (<span id="courseCountDisplay" class="text-indigo-600 dark:text-indigo-400 font-bold">0</span>)</span>
+              <button onclick="addCourseRow()" class="text-xs px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg transition font-medium">
+                + Add Course
+              </button>
+            </div>
+
+            <div id="coursesContainer" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+              <!-- Dynamically rendered course rows -->
+            </div>
+          </div>
+
+          <!-- Balance for Termly -->
+          <div class="p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+            <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+              <span>Term Total Credits:</span>
+              <span id="quarterTotalUnitsVal" class="font-mono font-bold text-indigo-600 dark:text-indigo-400">16 credits</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-500 dark:text-slate-400">
+              <span>Remaining Credits Beyond Term:</span>
+              <span id="quarterRemainingDegreeUnitsVal" class="font-mono text-slate-800 dark:text-slate-200">44 credits</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+              <label for="quarterFutureAssumedGpa">Assumed Avg on Remaining Credits:</label>
+              <input type="number" id="quarterFutureAssumedGpa" step="0.05" min="0" max="4" value="3.50" class="w-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded px-1.5 py-0.5 text-xs text-right font-mono text-indigo-600 dark:text-indigo-400 font-bold">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Visualization Chart -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 id="chartTitle" class="text-sm font-bold text-slate-900 dark:text-white">GPA Trajectory Projections</h2>
+              <p id="chartSubtext" class="text-xs text-slate-500 dark:text-slate-400">Past cumulative progression vs future projections</p>
+            </div>
+            <div id="chartLegend" class="flex items-center space-x-3 text-xs">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>
+                <span class="text-slate-600 dark:text-slate-400">Trajectory</span>
+              </div>
+              <div class="flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 inline-block"></span>
+                <span class="text-slate-500 dark:text-slate-400">Ceiling</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart Canvas -->
+          <div class="h-80 relative">
+            <canvas id="trajectoryChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Global Application State
+    const state = {
+      theme: 'light', // 'light' | 'dark'
+      activeScope: 'degree', // 'degree' | 'yearly' | 'quarterly'
+      maxGpaScale: 4.00,
+      
+      // Shared baseline prior history
+      priorGpa: 3.10,
+      priorCredits: 60,
+      totalDegreeCredits: 120,
+
+      // 1. Degree Scope Specific State
+      degree: {
+        calcMode: 1, // 1: Predict Final, 2: Calculate Required
+        futureGpa: 3.50,
+        targetGpa: 3.50
+      },
+
+      // 2. Yearly Scope Specific State
+      yearly: {
+        futureAssumedGpa: 3.50,
+        terms: [
+          { name: "Fall Term", units: 15, gpa: 3.40 },
+          { name: "Spring Term", units: 15, gpa: 3.60 }
+        ]
+      },
+
+      // 3. Termly / Course Scope Specific State
+      quarterly: {
+        termName: "Fall Term",
+        futureAssumedGpa: 3.50,
+        courses: [
+          { name: "Data Structures", units: 4, grade: 3.70 },
+          { name: "Calculus III", units: 4, grade: 3.00 },
+          { name: "Physics I", units: 4, grade: 3.30 },
+          { name: "English Comp", units: 4, grade: 4.00 }
+        ]
+      }
+    };
+
+    let chartInstance = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      setupEventListeners();
+      initChart();
+      renderYearlyTerms();
+      renderQuarterlyCourses();
+      updateAllCalculations();
+    });
+
+    // Theme Switcher Functions
+    function initTheme() {
+      // Respect system setting or default to light for clean minimalist look
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        state.theme = 'dark';
+      } else {
+        state.theme = 'light';
+      }
+      applyTheme();
+    }
+
+    function toggleTheme() {
+      state.theme = state.theme === 'light' ? 'dark' : 'light';
+      applyTheme();
+      updateAllCalculations(); // Re-render chart colors
+    }
+
+    function applyTheme() {
+      const html = document.documentElement;
+      const themeIconMobile = document.getElementById('themeIconMobile');
+      const themeIconDesktop = document.getElementById('themeIconDesktop');
+      const themeLabelText = document.getElementById('themeLabelText');
+
+      const sunIcon = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />`;
+      const moonIcon = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
+
+      if (state.theme === 'dark') {
+        html.classList.add('dark');
+        if (themeIconMobile) themeIconMobile.innerHTML = sunIcon;
+        if (themeIconDesktop) themeIconDesktop.innerHTML = sunIcon;
+        if (themeLabelText) themeLabelText.innerText = "Light";
+      } else {
+        html.classList.remove('dark');
+        if (themeIconMobile) themeIconMobile.innerHTML = moonIcon;
+        if (themeIconDesktop) themeIconDesktop.innerHTML = moonIcon;
+        if (themeLabelText) themeLabelText.innerText = "Dark";
+      }
+    }
+
+    // Scope Navigation Switcher
+    function setScope(scope) {
+      state.activeScope = scope;
+
+      const btnDegree = document.getElementById('scopeDegreeBtn');
+      const btnYearly = document.getElementById('scopeYearlyBtn');
+      const btnQuarterly = document.getElementById('scopeQuarterlyBtn');
+
+      const ctrlDegree = document.getElementById('degreeControls');
+      const ctrlYearly = document.getElementById('yearlyControls');
+      const ctrlQuarterly = document.getElementById('quarterlyControls');
+
+      const activeClass = "flex-1 md:flex-none px-3.5 py-1.5 rounded-lg font-medium transition flex items-center justify-center gap-1.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200/60 dark:border-slate-700";
+      const inactiveClass = "flex-1 md:flex-none px-3.5 py-1.5 rounded-lg font-medium transition flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent";
+
+      btnDegree.className = inactiveClass;
+      btnYearly.className = inactiveClass;
+      btnQuarterly.className = inactiveClass;
+
+      ctrlDegree.classList.add('hidden');
+      ctrlYearly.classList.add('hidden');
+      ctrlQuarterly.classList.add('hidden');
+
+      if (scope === 'degree') {
+        btnDegree.className = activeClass;
+        ctrlDegree.classList.remove('hidden');
+      } else if (scope === 'yearly') {
+        btnYearly.className = activeClass;
+        ctrlYearly.classList.remove('hidden');
+      } else if (scope === 'quarterly') {
+        btnQuarterly.className = activeClass;
+        ctrlQuarterly.classList.remove('hidden');
+      }
+
+      updateAllCalculations();
+    }
+
+    // Degree Mode Switcher
+    function switchDegreeCalcMode(mode) {
+      state.degree.calcMode = mode;
+      const b1 = document.getElementById('degreeMode1Btn');
+      const b2 = document.getElementById('degreeMode2Btn');
+      const pBox = document.getElementById('degreePredictBox');
+      const tBox = document.getElementById('degreeTargetBox');
+
+      const activeBtnClass = "flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm";
+      const inactiveBtnClass = "flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+
+      if (mode === 1) {
+        b1.className = activeBtnClass;
+        b2.className = inactiveBtnClass;
+        pBox.classList.remove('hidden');
+        tBox.classList.add('hidden');
+      } else {
+        b2.className = activeBtnClass;
+        b1.className = inactiveBtnClass;
+        tBox.classList.remove('hidden');
+        pBox.classList.add('hidden');
+      }
+
+      updateAllCalculations();
+    }
+
+    // Yearly Terms Logic
+    function addYearlyTerm() {
+      const idx = state.yearly.terms.length + 1;
+      state.yearly.terms.push({
+        name: `Term ${idx}`,
+        units: 15,
+        gpa: 3.50
+      });
+      renderYearlyTerms();
+      updateAllCalculations();
+    }
+
+    function removeYearlyTerm(idx) {
+      if (state.yearly.terms.length > 1) {
+        state.yearly.terms.splice(idx, 1);
+        renderYearlyTerms();
+        updateAllCalculations();
+      }
+    }
+
+    function renderYearlyTerms() {
+      const container = document.getElementById('yearlyTermsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      state.yearly.terms.forEach((term, idx) => {
+        const row = document.createElement('div');
+        row.className = "flex items-center gap-2 bg-slate-50 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs";
+        
+        row.innerHTML = `
+          <input type="text" value="${term.name}" onchange="updateYearlyTerm(${idx}, 'name', this.value)" class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1 font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500">
+          <div class="flex items-center gap-1">
+            <input type="number" min="1" max="30" value="${term.units}" onchange="updateYearlyTerm(${idx}, 'units', parseFloat(this.value) || 0)" class="w-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-1.5 py-1 text-center font-mono text-slate-700 dark:text-slate-300 focus:outline-none focus:border-indigo-500">
+            <span class="text-[10px] text-slate-400">credits</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <input type="number" min="0" max="${state.maxGpaScale}" step="0.01" value="${term.gpa.toFixed(2)}" onchange="updateYearlyTerm(${idx}, 'gpa', parseFloat(this.value) || 0)" class="w-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-1.5 py-1 text-center font-mono text-amber-600 dark:text-amber-400 font-bold focus:outline-none focus:border-indigo-500">
+            <span class="text-[10px] text-slate-400">gpa</span>
+          </div>
+          ${state.yearly.terms.length > 1 ? `<button onclick="removeYearlyTerm(${idx})" class="p-1 text-slate-400 hover:text-rose-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
+        `;
+
+        container.appendChild(row);
+      });
+    }
+
+    function updateYearlyTerm(idx, key, val) {
+      if (idx >= 0 && idx < state.yearly.terms.length) {
+        state.yearly.terms[idx][key] = val;
+        updateAllCalculations();
+      }
+    }
+
+    // Termly / Course Scope Logic
+    function addCourseRow() {
+      const idx = state.quarterly.courses.length + 1;
+      state.quarterly.courses.push({
+        name: `Course ${idx}`,
+        units: 4,
+        grade: 3.50
+      });
+      renderQuarterlyCourses();
+      updateAllCalculations();
+    }
+
+    function removeCourseRow(idx) {
+      if (state.quarterly.courses.length > 1) {
+        state.quarterly.courses.splice(idx, 1);
+        renderQuarterlyCourses();
+        updateAllCalculations();
+      }
+    }
+
+    function renderQuarterlyCourses() {
+      const container = document.getElementById('coursesContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const countEl = document.getElementById('courseCountDisplay');
+      if (countEl) countEl.innerText = state.quarterly.courses.length;
+
+      state.quarterly.courses.forEach((course, idx) => {
+        const row = document.createElement('div');
+        row.className = "flex items-center gap-2 bg-slate-50 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs";
+
+        row.innerHTML = `
+          <input type="text" value="${course.name}" onchange="updateQuarterlyCourse(${idx}, 'name', this.value)" class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1 font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500">
+          <div class="flex items-center gap-1">
+            <input type="number" min="1" max="12" value="${course.units}" onchange="updateQuarterlyCourse(${idx}, 'units', parseFloat(this.value) || 0)" class="w-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-1.5 py-1 text-center font-mono text-slate-700 dark:text-slate-300 focus:outline-none focus:border-indigo-500">
+            <span class="text-[10px] text-slate-400">credits</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <input type="number" min="0" max="${state.maxGpaScale}" step="0.01" value="${course.grade.toFixed(2)}" onchange="updateQuarterlyCourse(${idx}, 'grade', parseFloat(this.value) || 0)" class="w-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-1.5 py-1 text-center font-mono text-indigo-600 dark:text-indigo-400 font-bold focus:outline-none focus:border-indigo-500">
+            <span class="text-[10px] text-slate-400">grade</span>
+          </div>
+          ${state.quarterly.courses.length > 1 ? `<button onclick="removeCourseRow(${idx})" class="p-1 text-slate-400 hover:text-rose-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
+        `;
+
+        container.appendChild(row);
+      });
+    }
+
+    function updateQuarterlyCourse(idx, key, val) {
+      if (idx >= 0 && idx < state.quarterly.courses.length) {
+        state.quarterly.courses[idx][key] = val;
+        updateAllCalculations();
+      }
+    }
+
+    // Core Calculation Engine
+    function updateAllCalculations() {
+      const remainingDegreeCredits = Math.max(0, state.totalDegreeCredits - state.priorCredits);
+      document.querySelectorAll('.degreeRemainingCredsText').forEach(el => el.innerText = remainingDegreeCredits);
+      document.getElementById('degreeFutureGpaVal').innerText = state.degree.futureGpa.toFixed(2);
+
+      let focusGpa = 0.00;
+      let focusTitle = "";
+      let focusBadge = "";
+      let focusSubtext = "";
+      let focusSubBadgeText = "";
+
+      let finalCumulativeGpa = 0.00;
+      let maxPossibleGpa = 0.00;
+
+      const priorPoints = state.priorGpa * state.priorCredits;
+
+      if (state.activeScope === 'degree') {
+        focusTitle = "Degree Scope Target";
+        focusBadge = "DEGREE";
+        
+        if (state.degree.calcMode === 1) {
+          focusGpa = state.degree.futureGpa;
+          focusSubBadgeText = "Assumed Avg";
+          focusSubtext = `Target grade average for remaining ${remainingDegreeCredits} credits`;
+
+          const futurePoints = remainingDegreeCredits * state.degree.futureGpa;
+          finalCumulativeGpa = state.totalDegreeCredits > 0 ? ((priorPoints + futurePoints) / state.totalDegreeCredits) : 0;
+        } else {
+          const totalDesiredPoints = state.degree.targetGpa * state.totalDegreeCredits;
+          const neededFuturePoints = totalDesiredPoints - priorPoints;
+          focusGpa = remainingDegreeCredits > 0 ? (neededFuturePoints / remainingDegreeCredits) : 0;
+          
+          focusSubBadgeText = "Required Avg";
+          focusSubtext = `Needed on remaining ${remainingDegreeCredits} credits for ${state.degree.targetGpa.toFixed(2)} target`;
+          finalCumulativeGpa = state.degree.targetGpa;
+        }
+
+        const maxFuturePoints = remainingDegreeCredits * state.maxGpaScale;
+        maxPossibleGpa = state.totalDegreeCredits > 0 ? ((priorPoints + maxFuturePoints) / state.totalDegreeCredits) : 0;
+
+      } else if (state.activeScope === 'yearly') {
+        focusTitle = "End-of-Year GPA";
+        focusBadge = "YEARLY";
+        focusSubBadgeText = "Annual GPA";
+
+        let yearUnits = 0;
+        let yearPoints = 0;
+        state.yearly.terms.forEach(term => {
+          yearUnits += (term.units || 0);
+          yearPoints += ((term.units || 0) * (term.gpa || 0));
+        });
+
+        const yearlyGpa = yearUnits > 0 ? (yearPoints / yearUnits) : 0;
+        focusGpa = yearlyGpa;
+        focusSubtext = `Weighted average across ${yearUnits} planned credits this year`;
+
+        document.getElementById('yearlyTotalUnitsVal').innerText = `${yearUnits} credits`;
+        
+        const remainingUnplannedUnits = Math.max(0, state.totalDegreeCredits - state.priorCredits - yearUnits);
+        document.getElementById('yearlyRemainingDegreeUnitsVal').innerText = `${remainingUnplannedUnits} credits`;
+
+        const unplannedPoints = remainingUnplannedUnits * state.yearly.futureAssumedGpa;
+        finalCumulativeGpa = state.totalDegreeCredits > 0 ? ((priorPoints + yearPoints + unplannedPoints) / state.totalDegreeCredits) : 0;
+
+        const maxUnplannedPoints = (yearUnits + remainingUnplannedUnits) * state.maxGpaScale;
+        maxPossibleGpa = state.totalDegreeCredits > 0 ? ((priorPoints + maxUnplannedPoints) / state.totalDegreeCredits) : 0;
+
+      } else if (state.activeScope === 'quarterly') {
+        focusTitle = `${state.quarterly.termName} GPA`;
+        focusBadge = "TERMLY";
+        focusSubBadgeText = "Term GPA";
+
+        let termUnits = 0;
+        let termPoints = 0;
+        state.quarterly.courses.forEach(c => {
+          termUnits += (c.units || 0);
+          termPoints += ((c.units || 0) * (c.grade || 0));
+        });
+
+        const termGpa = termUnits > 0 ? (termPoints / termUnits) : 0;
+        focusGpa = termGpa;
+        focusSubtext = `Weighted average across ${state.quarterly.courses.length} courses (${termUnits} credits)`;
+
+        document.getElementById('quarterTotalUnitsVal').innerText = `${termUnits} credits`;
+
+        const remainingUnplannedUnits = Math.max(0, state.totalDegreeCredits - state.priorCredits - termUnits);
+        document.getElementById('quarterRemainingDegreeUnitsVal').innerText = `${remainingUnplannedUnits} credits`;
+
+        const unplannedPoints = remainingUnplannedUnits * state.quarterly.futureAssumedGpa;
+        finalCumulativeGpa = state.totalDegreeCredits > 0 ? ((priorPoints + termPoints + unplannedPoints) / state.totalDegreeCredits) : 0;
+
+        const maxUnplannedPoints = (termUnits + remainingUnplannedUnits) * state.maxGpaScale;
+        maxPossibleGpa = state.totalDegreeCredits > 0 ? ((priorPoints + maxUnplannedPoints) / state.totalDegreeCredits) : 0;
+      }
+
+      // Update Top Summary Banner
+      document.getElementById('tierFocusCardTitle').innerText = focusTitle;
+      document.getElementById('tierFocusBadge').innerText = focusBadge;
+      document.getElementById('tierFocusPrimaryValue').innerText = focusGpa.toFixed(2);
+      document.getElementById('tierFocusSubBadge').innerText = focusSubBadgeText;
+      document.getElementById('tierFocusSubtext').innerText = focusSubtext;
+
+      // Final Cumulative GPA Display & Delta
+      const delta = finalCumulativeGpa - state.priorGpa;
+      document.getElementById('finalGpaDisplay').innerText = finalCumulativeGpa.toFixed(2);
+      const deltaBadge = document.getElementById('finalGpaDeltaBadge');
+      if (delta >= 0) {
+        deltaBadge.innerText = `+${delta.toFixed(2)}`;
+        deltaBadge.className = "text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60";
+      } else {
+        deltaBadge.innerText = `${delta.toFixed(2)}`;
+        deltaBadge.className = "text-xs font-medium px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60";
+      }
+
+      // Max Possible GPA
+      document.getElementById('maxPossibleGpaDisplay').innerText = maxPossibleGpa.toFixed(2);
+
+      // Refresh Chart
+      updateChart(focusGpa, finalCumulativeGpa, maxPossibleGpa);
+    }
+
+    function setupEventListeners() {
+      // Global parameters
+      document.getElementById('maxGpaScaleInput').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val) && val > 0) {
+          state.maxGpaScale = val;
+          document.getElementById('priorGpaInput').max = val;
+          document.getElementById('degreeFutureGpaSlider').max = val;
+          document.getElementById('degreeTargetGpaInput').max = val;
+          renderYearlyTerms();
+          renderQuarterlyCourses();
+          updateAllCalculations();
+        }
+      });
+
+      document.getElementById('priorGpaInput').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+          state.priorGpa = val;
+          updateAllCalculations();
+        }
+      });
+
+      document.getElementById('priorCreditsInput').addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        if (!isNaN(val) && val >= 0) {
+          state.priorCredits = val;
+          updateAllCalculations();
+        }
+      });
+
+      document.getElementById('totalDegreeCreditsInput').addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        if (!isNaN(val) && val >= 1) {
+          state.totalDegreeCredits = val;
+          updateAllCalculations();
+        }
+      });
+
+      // Degree Scope Controls
+      document.getElementById('degreeFutureGpaSlider').addEventListener('input', (e) => {
+        state.degree.futureGpa = parseFloat(e.target.value);
+        updateAllCalculations();
+      });
+
+      document.getElementById('degreeTargetGpaInput').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+          state.degree.targetGpa = val;
+          updateAllCalculations();
+        }
+      });
+
+      // Yearly Assumed Future GPA
+      document.getElementById('yearlyFutureAssumedGpa').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+          state.yearly.futureAssumedGpa = val;
+          updateAllCalculations();
+        }
+      });
+
+      // Quarterly Term Name & Assumed Future GPA
+      document.getElementById('quarterTermNameInput').addEventListener('input', (e) => {
+        state.quarterly.termName = e.target.value || "Term";
+        updateAllCalculations();
+      });
+
+      document.getElementById('quarterFutureAssumedGpa').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+          state.quarterly.futureAssumedGpa = val;
+          updateAllCalculations();
+        }
+      });
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('trajectoryChart').getContext('2d');
+      const isDark = state.theme === 'dark';
+      
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Prior Cumulative', 'Scope Focus', 'Graduation Total'],
+          datasets: [
+            {
+              label: 'Trajectory',
+              data: [3.10, 3.50, 3.30],
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.08)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointRadius: 4,
+              pointBackgroundColor: '#6366f1'
+            },
+            {
+              label: 'Max Ceiling',
+              data: [3.10, 4.00, 3.55],
+              borderColor: isDark ? '#475569' : '#cbd5e1',
+              borderWidth: 1.5,
+              borderDash: [4, 4],
+              fill: false,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              min: 0.0,
+              max: 4.0,
+              grid: { color: isDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9' },
+              ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Inter', size: 11 } }
+            },
+            x: {
+              grid: { color: isDark ? 'rgba(51, 65, 85, 0.2)' : '#f8fafc' },
+              ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { family: 'Inter', size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChart(focusGpa, finalGpa, maxGpa) {
+      if (!chartInstance) return;
+
+      const isDark = state.theme === 'dark';
+      const title = document.getElementById('chartTitle');
+      const subtext = document.getElementById('chartSubtext');
+
+      if (state.activeScope === 'degree') {
+        title.innerText = "Degree Macro GPA Trajectory";
+        subtext.innerText = "Progression from prior completed credits to final graduation target";
+        
+        chartInstance.data.labels = ['Prior Cumulative', 'Projected Future', 'Graduation Total'];
+        chartInstance.data.datasets[0].data = [
+          state.priorGpa,
+          focusGpa,
+          finalGpa
+        ];
+        chartInstance.data.datasets[1].data = [
+          state.priorGpa,
+          state.maxGpaScale,
+          maxGpa
+        ];
+
+      } else if (state.activeScope === 'yearly') {
+        title.innerText = "Yearly Term-by-Term Breakdown";
+        subtext.innerText = "Term GPAs across the academic year vs. Cumulative Final";
+
+        const labels = ['Prior Cum.'];
+        const dataVals = [state.priorGpa];
+        const maxVals = [state.priorGpa];
+
+        state.yearly.terms.forEach((t) => {
+          labels.push(t.name);
+          dataVals.push(t.gpa);
+          maxVals.push(state.maxGpaScale);
+        });
+
+        labels.push('Final Cum.');
+        dataVals.push(finalGpa);
+        maxVals.push(maxGpa);
+
+        chartInstance.data.labels = labels;
+        chartInstance.data.datasets[0].data = dataVals;
+        chartInstance.data.datasets[1].data = maxVals;
+
+      } else if (state.activeScope === 'quarterly') {
+        title.innerText = `${state.quarterly.termName} Course Performance`;
+        subtext.innerText = "Individual course GPAs vs Term & Cumulative Average";
+
+        const labels = state.quarterly.courses.map(c => c.name);
+        const dataVals = state.quarterly.courses.map(c => c.grade);
+        const maxVals = state.quarterly.courses.map(() => state.maxGpaScale);
+
+        labels.push('Term Avg', 'Final Cum.');
+        dataVals.push(focusGpa, finalGpa);
+        maxVals.push(state.maxGpaScale, maxGpa);
+
+        chartInstance.data.labels = labels;
+        chartInstance.data.datasets[0].data = dataVals;
+        chartInstance.data.datasets[1].data = maxVals;
+      }
+
+      // Update theme colors on chart
+      chartInstance.options.scales.y.grid.color = isDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9';
+      chartInstance.options.scales.x.grid.color = isDark ? 'rgba(51, 65, 85, 0.2)' : '#f8fafc';
+      chartInstance.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
+      chartInstance.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
+      chartInstance.data.datasets[1].borderColor = isDark ? '#475569' : '#cbd5e1';
+
+      chartInstance.options.scales.y.max = Math.max(state.maxGpaScale, 4.0);
+      chartInstance.update();
+    }
+
+    function presetDegree(type) {
+      if (type === 'midway') {
+        state.priorGpa = 3.10;
+        state.priorCredits = 60;
+        state.totalDegreeCredits = 120;
+        state.degree.futureGpa = 3.50;
+
+        document.getElementById('priorGpaInput').value = 3.10;
+        document.getElementById('priorCreditsInput').value = 60;
+        document.getElementById('totalDegreeCreditsInput').value = 120;
+        document.getElementById('degreeFutureGpaSlider').value = 3.50;
+
+        updateAllCalculations();
+      }
+    }
+  </script>
+</body>
+</html>
